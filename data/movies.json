@@ -1,0 +1,112 @@
+[
+  {
+    "id": 1,
+    "poster": "https://m.media-amazon.com/images/M/MV5BMDFkYTc0MGEtZmNhMC00ZDIzLWFmNTEtODM1ZmRlYWMwMWFmXkEyXkFqcGdeQXVyMTMxODk2OTU@.jpg",
+    "title": "The Shawshank Redemption",
+    "year": 1994,
+    "imdb_score": 9.3,
+    "overview": "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+    "director": "Frank Darabont",
+    "runtime": "142 min",
+    "tags": ["Drama"]
+  },
+  {
+    "id": 2,
+    "poster": "https://m.media-amazon.com/images/M/MV5BM2MyNjYxNmUtYTAwNi00MTYxLWJmNWYtYzZlODY3ZTk3OTFlXkEyXkFqcGdeQXVyNzkwMjQ5NzM@.jpg",
+    "title": "The Godfather",
+    "year": 1972,
+    "imdb_score": 9.2,
+    "overview": "An organized crime dynasty's aging patriarch transfers control of his clandestine empire to his reluctant son.",
+    "director": "Francis Ford Coppola",
+    "runtime": "175 min",
+    "tags": ["Crime", "Drama"]
+  },
+  {
+    "id": 3,
+    "poster": "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@.jpg",
+    "title": "The Dark Knight",
+    "year": 2008,
+    "imdb_score": 9.0,
+    "overview": "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
+    "director": "Christopher Nolan",
+    "runtime": "152 min",
+    "tags": ["Action", "Crime", "Drama"]
+  },
+  {
+    "id": 4,
+    "poster": "https://m.media-amazon.com/images/M/MV5BMWMwMGQzZTItY2JlNC00OWZiLWIyMDctNDk2ZDQ2YjRjMWQ0XkEyXkFqcGdeQXVyNzkwMjQ5NzM@.jpg",
+    "title": "The Godfather: Part II",
+    "year": 1974,
+    "imdb_score": 9.0,
+    "overview": "The early life and career of Vito Corleone in 1920s New York City is portrayed, while his son, Michael, expands and tightens his grip on the family crime syndicate.",
+    "director": "Francis Ford Coppola",
+    "runtime": "202 min",
+    "tags": ["Crime", "Drama"]
+  },
+  {
+    "id": 5,
+    "poster": "https://m.media-amazon.com/images/M/MV5BMWU4N2FjNzYtNTVkNC00NzQ0LTg0MjAtYTJlMjFhNGUxZDFmXkEyXkFqcGdeQXVyNjc1NTYyMjg@.jpg",
+    "title": "12 Angry Men",
+    "year": 1957,
+    "imdb_score": 9.0,
+    "overview": "A jury holdout attempts to prevent a miscarriage of justice by forcing his colleagues to reconsider the evidence.",
+    "director": "Sidney Lumet",
+    "runtime": "96 min",
+    "tags": ["Crime", "Drama"]
+  },
+  {
+    "id": 6,
+    "poster": "https://m.media-amazon.com/images/M/MV5BNzA5ZDNlZWMtM2NhNS00NDJjLTk4NDItYTRmY2EwMWZlMTY3XkEyXkFqcGdeQXVyNzkwMjQ5NzM@.jpg",
+    "title": "The Lord of the Rings: The Return of the King",
+    "year": 2003,
+    "imdb_score": 8.9,
+    "overview": "Gandalf and Aragorn lead the World of Men against Sauron's army to draw his gaze from Frodo and Sam as they approach Mount Doom with the One Ring.",
+    "director": "Peter Jackson",
+    "runtime": "201 min",
+    "tags": ["Action", "Adventure", "Drama"]
+  },
+  {
+    "id": 7,
+    "poster": "https://m.media-amazon.com/images/M/MV5BNGNhMDIzZTUtNTBlZi00MTRlLWFjM2ItYzViMjE3YzI5MjljXkEyXkFqcGdeQXVyNzkwMjQ5NzM@.jpg",
+    "title": "Pulp Fiction",
+    "year": 1994,
+    "imdb_score": 8.9,
+    "overview": "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.",
+    "director": "Quentin Tarantino",
+    "runtime": "154 min",
+    "tags": ["Crime", "Drama"]
+  },
+  {
+    "id": 8,
+    "poster": "https://m.media-amazon.com/images/M/MV5BNDE4OTMxMTctNmRhYy00NWE2LTg3YzItYTk3M2UwOTU5Njg4XkEyXkFqcGdeQXVyNjU0OTQ0OTY@.jpg",
+    "title": "Schindler's List",
+    "year": 1993,
+    "imdb_score": 8.9,
+    "overview": "In German-occupied Poland during World War II, industrialist Oskar Schindler gradually becomes concerned for his Jewish workforce after witnessing their persecution by the Nazis.",
+    "director": "Steven Spielberg",
+    "runtime": "195 min",
+    "tags": ["Biography", "Drama", "History"]
+  },
+  {
+    "id": 9,
+    "poster": "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@.jpg",
+    "title": "Inception",
+    "year": 2010,
+    "imdb_score": 8.8,
+    "overview": "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+    "director": "Christopher Nolan",
+    "runtime": "148 min",
+    "tags": ["Action", "Adventure", "Sci-Fi"]
+  },
+  {
+    "id": 10,
+    "poster": "https://m.media-amazon.com/images/M/MV5BMmEzNTkxYjQtZTc0MC00YTVjLTg5ZTEtZWMwOWVlYzY0NWIwXkEyXkFqcGdeQXVyNzkwMjQ5NzM@.jpg",
+    "title": "Fight Club",
+    "year": 1999,
+    "imdb_score": 8.8,
+    "overview": "An insomniac office worker and a devil-may-care soapmaker form an underground fight club that evolves into something much, much more.",
+    "director": "David Fincher",
+    "runtime": "139 min",
+    "tags": ["Drama"]
+  }
+]
