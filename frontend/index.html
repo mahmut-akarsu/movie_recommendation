@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommendation AI</title>
+    
+    <!-- 1. Tailwind CSS (Tasarım Motoru) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Google Fonts (Inter - Premium Hissiyat) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- 3. FontAwesome (İkonlar) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Özel Konfigürasyon -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: '#0f172a',    // Ana Arka Plan
+                        card: '#1e293b',    // Kart Rengi
+                        primary: '#3b82f6', // Vurgu Rengi (Mavi)
+                        accent: '#f59e0b'   // Detay Rengi (Amber)
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Kaydırma çubuğu estetiği */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="bg-dark text-slate-200 font-sans antialiased min-h-screen">
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 w-full z-50 bg-dark/90 backdrop-blur-md border-b border-slate-800">
+        <div class="container mx-auto px-6 h-20 flex items-center justify-between">
+            <!-- Logo -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center text-primary">
+                    <i class="fa-solid fa-film text-xl"></i>
+                </div>
+                <span class="text-2xl font-bold tracking-tight text-white">Movie<span class="text-primary">AI</span></span>
+            </div>
+            
+            <!-- Sağ Taraf (Beğeni Sayacı) -->
+            <div class="relative group cursor-pointer" onclick="showLikesModal()">
+                <div class="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-700 transition">
+                    <i class="fa-solid fa-heart text-rose-500"></i>
+                </div>
+                <span id="like-count" class="absolute -top-1 -right-1 bg-rose-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-dark">0</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ANA İÇERİK -->
+    <main class="container mx-auto px-6 pt-32 pb-20">
+        
+        <!-- Hero & Filtreler -->
+        <header class="mb-12 text-center md:text-left md:flex md:items-end md:justify-between">
+            <div class="mb-6 md:mb-0">
+                <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">Keşfet & İzle</h1>
+                <p class="text-slate-400 text-lg">Yapay zeka algoritmamız zevkine en uygun filmleri seçsin.</p>
+            </div>
+            
+            <!-- Tür Filtreleri (Pill Shaped) -->
+            <div id="genre-filters" class="flex flex-wrap gap-2 justify-center md:justify-end">
+                <button onclick="filterByGenre('All')" class="filter-btn active px-5 py-2 rounded-full text-sm font-semibold transition bg-primary text-white shadow-lg shadow-primary/30">Tümü</button>
+                <button onclick="filterByGenre('Sci-Fi')" class="filter-btn px-5 py-2 rounded-full text-sm font-semibold bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition">Bilim Kurgu</button>
+                <button onclick="filterByGenre('Action')" class="filter-btn px-5 py-2 rounded-full text-sm font-semibold bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition">Aksiyon</button>
+                <button onclick="filterByGenre('Drama')" class="filter-btn px-5 py-2 rounded-full text-sm font-semibold bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition">Dram</button>
+                <button onclick="filterByGenre('Romance')" class="filter-btn px-5 py-2 rounded-full text-sm font-semibold bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition">Romantik</button>
+            </div>
+        </header>
+
+        <!-- ÖNERİLER BÖLÜMÜ (Başta gizli) -->
+        <section id="recommendation-section" class="mb-16 hidden">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="h-8 w-1 bg-gradient-to-b from-primary to-purple-600 rounded-full"></div>
+                <h2 class="text-2xl font-bold text-white">Sizin İçin Önerilenler</h2>
+            </div>
+            <div id="recommendation-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <!-- Öneri kartları buraya JS ile gelecek -->
+            </div>
+        </section>
+
+        <!-- TÜM FİLMLER LİSTESİ -->
+        <section>
+            <div class="flex items-center gap-3 mb-6">
+                <div class="h-8 w-1 bg-slate-700 rounded-full"></div>
+                <h2 class="text-xl font-bold text-slate-200">Popüler Filmler</h2>
+            </div>
+            <div id="movies-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <!-- Film kartları buraya JS ile gelecek -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Yükleniyor Göstergesi -->
+    <div id="loader" class="fixed inset-0 bg-dark z-[60] flex items-center justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+    </div>
+
+    <!-- Script Dosyası -->
+    <script src="app.js"></script>
+</body>
+</html>
