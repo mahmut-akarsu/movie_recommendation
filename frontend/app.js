@@ -1,174 +1,317 @@
 const API_URL = 'http://127.0.0.1:5000/api';
 let allMovies = [];
+let currentFilter = 'All';
 
-// Sayfa Yüklendiğinde
+let currentPage = 1;
+let isFetching = false;
+let hasMore = true; // Daha yüklenecek veri var mı?
+
+
+// BAŞLANGIÇ
 document.addEventListener('DOMContentLoaded', async () => {
-    await fetchMovies();
+    // Tema kontrolü... (Mevcut kodlar kalsın)
     
-    // Yükleme ekranını kaldır
-    setTimeout(() => {
-        document.getElementById('loader').style.opacity = '0';
-        setTimeout(() => {
-            document.getElementById('loader').style.display = 'none';
-        }, 500);
-    }, 800);
+    // Gözcü'yü Başlat (Infinite Scroll)
+    setupIntersectionObserver();
+    
+    // İlk veriyi çek
+    await loadMovies(true); // true = reset (sıfırdan yükle)
 });
 
-
-
-// 1. Filmleri Getir
-//buraya bakım yapılacak
-async function fetchMovies(genre = 'All') {
+// 1. VERİ ÇEKME
+async function fetchMovies() {
     try {
-        const url =
-          genre === 'All'
-            ? `${API_URL}/movies`
-            : `${API_URL}/movies?genre=${encodeURIComponent(genre)}`;
-
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        allMovies = await response.json();
+        const res = await fetch(`${API_URL}/movies`);
+        allMovies = await res.json();
         renderMovies(allMovies);
         updateLikeCount();
-    } catch (error) {
-        console.error("Bağlantı Hatası:", error);
+    } catch (e) { console.error(e); }
+}
+
+async function loadMovies(reset = false) {
+    // Eğer zaten yükleme yapılıyorsa veya veri bittiyse dur.
+    if (isFetching || (!hasMore && !reset)) return;
+
+    isFetching = true;
+    
+    // Yükleniyor animasyonunu göster
+    const sentinel = document.getElementById('infinite-scroll-sentinel');
+    sentinel.classList.remove('opacity-0');
+
+    if (reset) {
+        currentPage = 1;
+        hasMore = true;
+        document.getElementById('movies-grid').innerHTML = ''; // Listeyi temizle
+        document.getElementById('end-of-list').classList.add('hidden');
+    }
+
+    try {
+        // Backend'e sayfa numarası ile istek at
+        const url = `${API_URL}/movies?genre=${currentFilter}&page=${currentPage}&limit=20`;
+        const res = await fetch(url);
+        const { data, meta } = await res.json();
+
+        // Veriyi Ekrana Bas (Append Mode)
+        renderMoviesAppend(data);
+
+        // State Güncelleme
+        allMovies = reset ? data : [...allMovies, ...data]; // Hafızayı güncelle
+        
+        if (data.length === 0 || currentPage >= meta.totalPages) {
+            hasMore = false;
+            document.getElementById('end-of-list').classList.remove('hidden');
+            sentinel.classList.add('hidden'); // Gözcüyü gizle
+        } else {
+            currentPage++;
+        }
+
+    } catch (e) {
+        console.error(e);
+    } finally {
+        isFetching = false;
+        sentinel.classList.add('opacity-0');
     }
 }
 
 
-// 2. Kartları Ekrana Bas (Modern Tasarım Şablonu Burada)
+// --- APPEND RENDERING (Ekleme Yapan Render) ---
+function renderMoviesAppend(movies) {
+    const grid = document.getElementById('movies-grid');
+    movies.forEach(movie => {
+        grid.innerHTML += createCardHTML(movie);
+    });
+}
+
+// --- INTERSECTION OBSERVER (Gözcü Kurulumu) ---
+function setupIntersectionObserver() {
+    const sentinel = document.getElementById('infinite-scroll-sentinel');
+    
+    const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+            loadMovies(false); // false = append (ekle)
+        }
+    }, { rootMargin: '100px' });
+
+    observer.observe(sentinel);
+}
+
+
+function filterByGenre(genre) {
+    currentFilter = genre;
+    
+    // UI Güncelleme (Buton renkleri vs. - Eski kodun aynısı)
+    document.querySelectorAll('.filter-btn').forEach(btn => { /* ... */ });
+
+    // LİSTEYİ SIFIRLA VE YENİDEN ÇEK
+    loadMovies(true); 
+}
+
+function handleSort() {
+    const criteria = document.getElementById('sort-select').value;
+    let sorted = [...allMovies];
+    
+    // Grid'i temizle ve sıralanmış veriyi bas
+    document.getElementById('movies-grid').innerHTML = '';
+    sorted.forEach(m => document.getElementById('movies-grid').innerHTML += createCardHTML(m));
+}
+
+
+// 2. KART ÇİZME (Render)
 function renderMovies(movies) {
     const grid = document.getElementById('movies-grid');
     grid.innerHTML = '';
-
     movies.forEach(movie => {
-        const card = createMovieCard(movie);
-        grid.innerHTML += card;
+        grid.innerHTML += createCardHTML(movie);
     });
 }
 
-// 3. Tekil Kart Tasarımı (HTML Template)
-// Buradaki class'lar estetiği sağlayan kısımdır.
-function createMovieCard(movie, isRecommendation = false) {
-    const likeClass = movie.isLiked ? 'text-rose-500 fa-solid' : 'text-slate-400 fa-regular';
-    const borderClass = isRecommendation ? 'border border-primary/30 shadow-primary/10' : 'border border-slate-800 hover:border-slate-600';
-    
-    // Şeffaflık Rozeti (Sadece önerilerde çıkar)
-    const matchBadge = isRecommendation 
-        ? `<div class="absolute top-3 left-3 bg-dark/80 backdrop-blur-md px-3 py-1 rounded-full border border-primary/30 flex items-center gap-2">
-             <i class="fa-solid fa-wand-magic-sparkles text-primary text-xs"></i>
-             <span class="text-xs font-bold text-white">%${(movie.score * 100).toFixed(0)} Match</span>
-           </div>`
-        : '';
+// 3. KART HTML (Zenginleştirilmiş)
+function createCardHTML(movie, isRec = false) {
+    const likeClass = movie.isLiked ? 'text-secondary fa-solid' : 'text-slate-400 fa-regular';
+    // isRec (Öneri) ise farklı border rengi
+    const borderClass = isRec ? 'border-primary/50 ring-2 ring-primary/20' : 'border-slate-200 dark:border-slate-800';
 
     return `
-        <div class="group relative bg-card rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 ${borderClass}">
-            
-            ${matchBadge}
-
-            <!-- Poster Alanı -->
-            <div class="relative aspect-[2/3] overflow-hidden">
-                <img src="${movie.poster}" alt="${movie.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute inset-0 bg-gradient-to-t from-dark/90 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity"></div>
+    <div class="group relative bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 border ${borderClass} flex flex-col h-full">
+        <!-- Tıklanabilir Alan (Detay için) -->
+        <div onclick="openModal(${movie.id})" class="cursor-pointer relative aspect-[2/3] overflow-hidden bg-slate-800">
+            <img src="${movie.poster}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+            <div class="absolute inset-0 bg-gradient-to-t from-dark/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-6">
+                <span class="text-white font-bold tracking-widest text-sm uppercase px-4 py-2 border border-white/30 rounded-full backdrop-blur-sm">Detayları Gör</span>
             </div>
-
-            <!-- İçerik Alanı -->
-            <div class="p-5 relative">
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="text-lg font-bold text-white leading-tight line-clamp-1">${movie.title}</h3>
-                    <div class="flex items-center gap-1 text-amber-400 text-sm font-bold">
-                        <i class="fa-solid fa-star"></i>
-                        <span>${movie.imdb_score}</span>
-                    </div>
-                </div>
-                
-                <p class="text-sm text-slate-400 mb-4 font-medium">${movie.year} • ${movie.director}</p>
-                
-                <div class="flex flex-wrap gap-2 mb-4">
-                    ${movie.tags.slice(0, 3).map(tag => `<span class="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-md bg-slate-700 text-slate-300">${tag}</span>`).join('')}
-                </div>
-
-                <!-- Like Butonu (Sağ altta yüzen buton) -->
-                <button onclick="toggleLike(${movie.id})" class="absolute -top-6 right-4 w-12 h-12 rounded-full bg-slate-800 border border-slate-700 shadow-xl flex items-center justify-center hover:bg-white hover:scale-110 transition group/btn">
-                    <i class="fa-heart text-xl transition ${likeClass} group-hover/btn:text-rose-500"></i>
-                </button>
-            </div>
+            ${isRec ? `<div class="absolute top-2 left-2 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg">%${(movie.score*100).toFixed(0)} Match</div>` : ''}
         </div>
+
+        <div class="p-5 flex flex-col flex-grow relative">
+            <div class="flex justify-between items-start mb-2">
+                <h3 onclick="openModal(${movie.id})" class="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight hover:text-primary transition cursor-pointer">${movie.title}</h3>
+                <span class="text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-1 rounded">${movie.year}</span>
+            </div>
+            
+            <div class="flex items-center gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400 mb-4">
+                <span><i class="fa-regular fa-clock mr-1"></i>${movie.runtime || 'N/A'}</span>
+                <span class="text-yellow-500"><i class="fa-solid fa-star mr-1"></i>${movie.imdb_score || movie.rating}</span>
+            </div>
+
+            <!-- Like Butonu -->
+            <button onclick="toggleLike(${movie.id})" class="absolute top-[-24px] right-4 w-12 h-12 rounded-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl flex items-center justify-center hover:scale-110 transition z-10 group/btn">
+                <i class="fa-heart text-xl transition ${likeClass} group-hover/btn:text-secondary"></i>
+            </button>
+        </div>
+    </div>
     `;
 }
 
-// 4. Beğeni Fonksiyonu (Backend'e POST atar)
-async function toggleLike(movieId) {
-    try {
-        const res = await fetch(`${API_URL}/like`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ movieId })
-        });
-        const data = await res.json();
-        
-        if(data.success) {
-            // Arayüzü güncelle (Sayfayı yenilemeden)
-            updateUI(movieId); 
-            fetchRecommendations(); // Beğeni değişti, önerileri yenile!
-        }
-    } catch (error) {
-        console.error(error);
+
+function handleSort() {
+    const criteria = document.getElementById('sort-select').value;
+    let sorted = [...allMovies]; // Kopya oluştur
+
+    // Önce mevcut filtreyi uygula
+    if (currentFilter !== 'All') {
+        sorted = sorted.filter(m => m.tags.includes(currentFilter));
     }
+
+    // Sonra sırala
+    switch(criteria) {
+        case 'year_desc': sorted.sort((a,b) => b.year - a.year); break;
+        case 'year_asc': sorted.sort((a,b) => a.year - b.year); break;
+        case 'imdb_desc': sorted.sort((a,b) => (b.imdb_score || b.rating) - (a.imdb_score || a.rating)); break;
+        case 'runtime_desc': 
+            // "142 min" stringini sayıya çevirme
+            sorted.sort((a,b) => parseInt(b.runtime) - parseInt(a.runtime)); 
+            break;
+    }
+    renderMovies(sorted);
 }
 
-// 5. UI Güncelleme (Optimistik güncelleme)
-function updateUI(movieId) {
-    // Ana listedeki filmi bul ve durumunu değiştir
-    const movie = allMovies.find(m => m.id === movieId);
-    if(movie) movie.isLiked = !movie.isLiked;
-    
-    // Tüm kartları yeniden çiz (Basit yöntem)
-    renderMovies(allMovies);
-    updateLikeCount();
+// 5. MODAL AÇMA (Detay Sayfası)
+function openModal(id) {
+    const movie = allMovies.find(m => m.id === id);
+    if (!movie) return;
+
+    // Verileri Doldur
+    document.getElementById('modal-poster').src = movie.poster;
+    document.getElementById('modal-title').innerText = movie.title;
+    document.getElementById('modal-overview').innerText = movie.overview || "Özet bulunamadı.";
+    document.getElementById('modal-director').innerHTML = `<i class="fa-solid fa-video mr-2"></i>${movie.director}`;
+    document.getElementById('modal-runtime').innerHTML = `<i class="fa-regular fa-clock mr-2"></i>${movie.runtime}`;
+    document.getElementById('modal-year').innerText = movie.year;
+    document.getElementById('modal-score').innerText = movie.imdb_score || movie.rating;
+
+    // Etiketleri Doldur
+    const tagsContainer = document.getElementById('modal-tags');
+    tagsContainer.innerHTML = movie.tags.map(tag => 
+        `<span class="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-sm border border-slate-200 dark:border-slate-700">${tag}</span>`
+    ).join('');
+
+    // Modalı Göster
+    document.getElementById('movie-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Arka plan kaymasını engelle
 }
 
-// 6. Önerileri Getir (AI Endpoint)
-async function fetchRecommendations() {
-    const res = await fetch(`${API_URL}/recommendations`);
-    const recommendations = await res.json();
-    
-    const recSection = document.getElementById('recommendation-section');
-    const recGrid = document.getElementById('recommendation-grid');
-    
-    if(recommendations.length > 0) {
-        recSection.classList.remove('hidden');
-        recGrid.innerHTML = '';
-        recommendations.forEach(movie => {
-            recGrid.innerHTML += createMovieCard(movie, true);
-        });
+function closeModal() {
+    document.getElementById('movie-modal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+// 6. TEMA DEĞİŞTİRME
+function toggleTheme() {
+    const html = document.documentElement;
+    if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+        updateThemeIcon(true);
     } else {
-        recSection.classList.add('hidden');
+        html.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+        updateThemeIcon(false);
     }
 }
 
-// 7. Filtreleme (Frontend tarafında style class değişimi)
-function filterByGenre(genre) {
-    // Buton stillerini güncelle
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('bg-primary', 'text-white', 'shadow-lg');
-        btn.classList.add('bg-slate-800', 'text-slate-400');
-        if(btn.innerText.includes(genre === 'All' ? 'Tümü' : genre)) { // Basit eşleştirme
-            btn.classList.remove('bg-slate-800', 'text-slate-400');
-            btn.classList.add('bg-primary', 'text-white', 'shadow-lg');
-        }
-    });
-
-    // Veriyi yeniden çek
-    fetchMovies(genre);
+function updateThemeIcon(isLight) {
+    const icon = document.getElementById('theme-icon');
+    if (isLight) {
+        icon.classList.remove('fa-sun', 'text-yellow-500');
+        icon.classList.add('fa-moon', 'text-slate-600');
+    } else {
+        icon.classList.add('fa-sun', 'text-yellow-500');
+        icon.classList.remove('fa-moon', 'text-slate-600');
+    }
 }
 
-// Yardımcı: Beğeni Sayısını Güncelle
+
+async function toggleLike(id) {
+    await fetch(`${API_URL}/like`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({movieId: id}) });
+    // Local state güncelle
+    const m = allMovies.find(m => m.id === id);
+    if(m) m.isLiked = !m.isLiked;
+    
+    // UI Güncelle (Tüm sayfayı yenilemeden)
+    handleSort(); // Mevcut sıralama/filtre bozulmasın
+    updateLikeCount();
+    checkRecommendations();
+}
+
+async function checkRecommendations() {
+    const res = await fetch(`${API_URL}/recommendations`);
+    const data = await res.json();
+    const section = document.getElementById('recommendation-section');
+    const grid = document.getElementById('recommendation-grid');
+    
+    if (data.length > 0) {
+        section.classList.remove('hidden');
+        grid.innerHTML = data.map(m => createCardHTML(m, true)).join('');
+    } else {
+        section.classList.add('hidden');
+    }
+}
+
+function filterByGenre(genre) {
+    currentFilter = genre;
+    // Buton stilleri güncelleme (Daha önceki gibi)
+    handleSort(); // Filtre + Sıralama uygula
+}
+
 function updateLikeCount() {
-    const count = allMovies.filter(m => m.isLiked).length;
-    document.getElementById('like-count').innerText = count;
+    document.getElementById('like-count').innerText = allMovies.filter(m => m.isLiked).length;
+}
+
+
+
+function showLikesModal() {
+    const modal = document.getElementById('likes-modal');
+    const grid = document.getElementById('liked-movies-grid');
+    const emptyState = document.getElementById('empty-likes-state');
+    
+    // 1. Beğenilenleri Filtrele
+    const likedMovies = allMovies.filter(m => m.isLiked);
+
+    // 2. İçeriği Temizle
+    grid.innerHTML = '';
+
+    // 3. Duruma Göre Render Et
+    if (likedMovies.length === 0) {
+        grid.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        emptyState.classList.add('flex');
+    } else {
+        grid.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+        emptyState.classList.remove('flex');
+
+        likedMovies.forEach(movie => {
+            grid.innerHTML += createCardHTML(movie);
+        });
+    }
+
+    // 4. Modalı Göster
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Arka planı kilitle
+}
+
+function closeLikesModal() {
+    const modal = document.getElementById('likes-modal');
+    modal.classList.add('hidden');
+    document.body.style.overflow = 'auto'; // Kaydırmayı aç
 }

@@ -1,64 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark"> <!-- Varsayılan Dark Mode -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Recommendation AI</title>
+    <title>QuaresmAI - Premium</title>
     
-    <!-- 1. Tailwind CSS (Tasarım Motoru) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- 2. Google Fonts (Inter - Premium Hissiyat) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
-    <!-- 3. FontAwesome (İkonlar) -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Özel Konfigürasyon -->
     <script>
         tailwind.config = {
+            darkMode: 'class', // Class tabanlı dark mode
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
                     colors: {
-                        dark: '#0f172a',    // Ana Arka Plan
-                        card: '#1e293b',    // Kart Rengi
-                        primary: '#3b82f6', // Vurgu Rengi (Mavi)
-                        accent: '#f59e0b'   // Detay Rengi (Amber)
+                        dark: '#0f172a',    
+                        light: '#f8fafc',
+                        primary: '#6366f1', // Indigo
+                        secondary: '#ec4899' // Pink
                     }
                 }
             }
         }
     </script>
     <style>
-        /* Kaydırma çubuğu estetiği */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .glass-light { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(0, 0, 0, 0.05); }
+        body { transition: background-color 0.3s, color 0.3s; }
+        /* Modal Animasyonları */
+        .modal-enter { opacity: 0; transform: scale(0.95); }
+        .modal-enter-active { opacity: 1; transform: scale(1); transition: all 0.3s ease-out; }
+        .modal-exit { opacity: 0; transform: scale(0.95); transition: all 0.2s ease-in; }
     </style>
 </head>
-<body class="bg-dark text-slate-200 font-sans antialiased min-h-screen">
+<body class="bg-light dark:bg-dark text-slate-800 dark:text-slate-200 antialiased min-h-screen">
 
     <!-- NAVBAR -->
-    <nav class="fixed top-0 w-full z-50 bg-dark/90 backdrop-blur-md border-b border-slate-800">
+    <nav class="fixed top-0 w-full z-40 bg-white/80 dark:bg-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
         <div class="container mx-auto px-6 h-20 flex items-center justify-between">
-            <!-- Logo -->
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center text-primary">
-                    <i class="fa-solid fa-film text-xl"></i>
+                <div class="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/30">
+                    <i class="fa-solid fa-play text-lg"></i>
                 </div>
-                <span class="text-2xl font-bold tracking-tight text-white">Movie<span class="text-primary">AI</span></span>
+                <span class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Quaresm<span class="text-primary">AI</span></span>
             </div>
             
-            <!-- Sağ Taraf (Beğeni Sayacı) -->
-            <div class="relative group cursor-pointer" onclick="showLikesModal()">
-                <div class="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-700 transition">
-                    <i class="fa-solid fa-heart text-rose-500"></i>
+            <div class="flex items-center gap-4">
+                <!-- Tema Değiştirici -->
+                <button onclick="toggleTheme()" class="w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition">
+                    <i id="theme-icon" class="fa-solid fa-sun text-yellow-500 text-xl"></i>
+                </button>
+                
+                <!-- Beğeni -->
+                <div class="relative group cursor-pointer" onclick="showLikesModal()">
+                    <div class="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                        <i class="fa-solid fa-heart text-secondary"></i>
+                    </div>
+                    <span id="like-count" class="absolute -top-1 -right-1 bg-secondary text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-md">0</span>
                 </div>
-                <span id="like-count" class="absolute -top-1 -right-1 bg-rose-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-dark">0</span>
             </div>
         </div>
     </nav>
@@ -66,53 +67,169 @@
     <!-- ANA İÇERİK -->
     <main class="container mx-auto px-6 pt-32 pb-20">
         
-        <!-- Hero & Filtreler -->
-        <header class="mb-12 text-center md:text-left md:flex md:items-end md:justify-between">
-            <div class="mb-6 md:mb-0">
-                <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">Keşfet & İzle</h1>
-                <p class="text-slate-400 text-lg">Yapay zeka algoritmamız zevkine en uygun filmleri seçsin.</p>
+        <!-- Header & Kontroller -->
+        <header class="flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-12">
+            <div>
+                <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">Sinema Dünyası</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-lg font-medium">Kişiselleştirilmiş film deneyimi</p>
             </div>
             
-            <!-- Tür Filtreleri (Pill Shaped) -->
-            <div id="genre-filters" class="flex flex-wrap gap-2 justify-center md:justify-end">
-                <button onclick="filterByGenre('All')" class="filter-btn active px-5 py-2 rounded-full text-sm font-semibold transition bg-primary text-white shadow-lg shadow-primary/30">Tümü</button>
-                <button onclick="filterByGenre('Sci-Fi')" class="filter-btn px-5 py-2 rounded-full text-sm font-semibold bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition">Bilim Kurgu</button>
-                <button onclick="filterByGenre('Action')" class="filter-btn px-5 py-2 rounded-full text-sm font-semibold bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition">Aksiyon</button>
-                <button onclick="filterByGenre('Drama')" class="filter-btn px-5 py-2 rounded-full text-sm font-semibold bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition">Dram</button>
-                <button onclick="filterByGenre('Romance')" class="filter-btn px-5 py-2 rounded-full text-sm font-semibold bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition">Romantik</button>
+            <div class="flex flex-col md:flex-row gap-4 w-full xl:w-auto">
+                <!-- Sıralama Dropdown -->
+                <div class="relative">
+                    <select id="sort-select" onchange="handleSort()" class="w-full md:w-48 appearance-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-3 px-4 rounded-xl font-semibold focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer shadow-sm">
+                        <option value="default">Varsayılan Sıralama</option>
+                        <option value="year_desc">En Yeniler</option>
+                        <option value="year_asc">En Eskiler</option>
+                        <option value="imdb_desc">IMDB Puanı (Yüksek)</option>
+                        <option value="runtime_desc">Süre (Uzun)</option>
+                    </select>
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-sort"></i>
+                    </div>
+                </div>
+
+                <!-- Tür Filtreleri -->
+                <div class="flex overflow-x-auto pb-2 md:pb-0 gap-2 scrollbar-hide">
+                    <button onclick="filterByGenre('All')" class="filter-btn active whitespace-nowrap px-5 py-3 rounded-xl text-sm font-bold transition bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg">Tümü</button>
+                    <button onclick="filterByGenre('Sci-Fi')" class="filter-btn whitespace-nowrap px-5 py-3 rounded-xl text-sm font-bold bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary transition">Bilim Kurgu</button>
+                    <button onclick="filterByGenre('Drama')" class="filter-btn whitespace-nowrap px-5 py-3 rounded-xl text-sm font-bold bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary transition">Dram</button>
+                    <button onclick="filterByGenre('Crime')" class="filter-btn whitespace-nowrap px-5 py-3 rounded-xl text-sm font-bold bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary transition">Suç</button>
+                </div>
             </div>
         </header>
 
-        <!-- ÖNERİLER BÖLÜMÜ (Başta gizli) -->
+        <!-- ÖNERİLER (Başta Gizli) -->
         <section id="recommendation-section" class="mb-16 hidden">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="h-8 w-1 bg-gradient-to-b from-primary to-purple-600 rounded-full"></div>
-                <h2 class="text-2xl font-bold text-white">Sizin İçin Önerilenler</h2>
+            <div class="flex items-center gap-3 mb-6 p-4 bg-gradient-to-r from-primary/10 to-transparent rounded-2xl border border-primary/10">
+                <i class="fa-solid fa-wand-magic-sparkles text-primary text-xl"></i>
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">AI Sizin İçin Seçti</h2>
             </div>
-            <div id="recommendation-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                <!-- Öneri kartları buraya JS ile gelecek -->
-            </div>
+            <div id="recommendation-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
         </section>
 
-        <!-- TÜM FİLMLER LİSTESİ -->
-        <section>
-            <div class="flex items-center gap-3 mb-6">
-                <div class="h-8 w-1 bg-slate-700 rounded-full"></div>
-                <h2 class="text-xl font-bold text-slate-200">Popüler Filmler</h2>
-            </div>
+        <!-- ANA LİSTE -->
+          <section>
             <div id="movies-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                <!-- Film kartları buraya JS ile gelecek -->
+                <!-- Kartlar Buraya -->
             </div>
+            
+            <!-- GÖZCÜ ELEMAN (SONSUZ KAYDIRMA İÇİN) -->
+            <!-- Bu eleman ekrana girdiği an yeni sayfa yüklenecek -->
+            <div id="infinite-scroll-sentinel" class="h-20 w-full flex items-center justify-center mt-10 opacity-0 transition-opacity">
+                <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+            </div>
+            
+            <p id="end-of-list" class="text-center text-slate-500 hidden py-10">Tüm filmleri listelediniz 🎉</p>
         </section>
-
     </main>
 
-    <!-- Yükleniyor Göstergesi -->
-    <div id="loader" class="fixed inset-0 bg-dark z-[60] flex items-center justify-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+    <!-- DETAY MODALI (Overlay) -->
+    <div id="movie-modal" class="fixed inset-0 z-50 hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-dark/90 backdrop-blur-sm" onclick="closeModal()"></div>
+        
+        <!-- İçerik -->
+        <div class="absolute inset-0 md:inset-10 lg:inset-20 bg-white dark:bg-slate-900 md:rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-[modal-enter_0.3s_ease-out]">
+            
+            <!-- Sol: Poster (Full Height) -->
+            <div class="w-full md:w-1/3 h-64 md:h-full relative">
+                <img id="modal-poster" src="" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent md:hidden"></div>
+                <button onclick="closeModal()" class="absolute top-4 right-4 bg-black/50 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-500 transition md:hidden"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Sağ: Detaylar -->
+            <div class="w-full md:w-2/3 p-8 md:p-12 overflow-y-auto bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 relative">
+                
+                <button onclick="closeModal()" class="hidden md:flex absolute top-8 right-8 text-slate-400 hover:text-red-500 transition text-2xl"><i class="fa-solid fa-xmark"></i></button>
+
+                <!-- Başlık & Meta -->
+                <div class="mb-8">
+                    <div class="flex flex-wrap items-center gap-3 mb-4 text-sm font-bold uppercase tracking-wider text-primary">
+                        <span id="modal-director"><i class="fa-solid fa-video mr-2"></i>Director</span>
+                        <span class="w-1 h-1 bg-slate-400 rounded-full"></span>
+                        <span id="modal-runtime"><i class="fa-regular fa-clock mr-2"></i>Time</span>
+                    </div>
+                    <h2 id="modal-title" class="text-4xl md:text-5xl font-black mb-4 leading-tight">Title</h2>
+                    <div class="flex items-center gap-4 text-lg">
+                        <span id="modal-year" class="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg font-bold">Year</span>
+                        <div class="flex items-center gap-1 text-yellow-500 font-bold">
+                            <i class="fa-solid fa-star"></i>
+                            <span id="modal-score">0.0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Özet -->
+                <div class="mb-10">
+                    <h3 class="text-xl font-bold mb-3 border-b border-slate-200 dark:border-slate-800 pb-2">Özet</h3>
+                    <p id="modal-overview" class="text-slate-600 dark:text-slate-400 leading-relaxed text-lg">Overview text...</p>
+                </div>
+
+                <!-- Tür Etiketleri -->
+                <div class="mb-10">
+                    <div id="modal-tags" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- Alt Kısım: AI Önerisi (Benzerleri) -->
+                <div class="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-bold text-lg"><i class="fa-solid fa-link mr-2 text-primary"></i>Benzer Filmler</h4>
+                        <span class="text-xs text-slate-500 uppercase font-bold"></span>
+                    </div>
+                    <!-- Buraya küçük benzer film kartları gelebilir (V2 için) -->
+                    <p class="text-sm text-slate-500">Bu filmi beğendiyseniz, ana sayfadaki öneri motorumuz sizin için benzerlerini listeyecektir.</p>
+                </div>
+
+            </div>
+        </div>
     </div>
 
-    <!-- Script Dosyası -->
+    <!-- BEĞENİLENLER MODALI -->
+<div id="likes-modal" class="fixed inset-0 z-50 hidden">
+    <!-- Arka Plan (Backdrop) -->
+    <div class="absolute inset-0 bg-dark/90 backdrop-blur-sm transition-opacity" onclick="closeLikesModal()"></div>
+    
+    <!-- İçerik Kutusu -->
+    <div class="absolute inset-x-0 bottom-0 md:inset-10 md:top-20 bg-white dark:bg-slate-900 md:rounded-3xl shadow-2xl flex flex-col animate-[modal-enter_0.3s_ease-out] overflow-hidden border border-slate-200 dark:border-slate-800">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md z-10">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+                    <i class="fa-solid fa-heart text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Favori Koleksiyonum</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Zevkini şekillendiren filmler.</p>
+                </div>
+            </div>
+            <button onclick="closeLikesModal()" class="w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition text-slate-500 hover:text-red-500">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Liste Alanı (Scrollable) -->
+        <div class="flex-1 overflow-y-auto p-6 md:p-10 bg-slate-50 dark:bg-[#0b1120]">
+            <!-- Filmler Buraya Gelecek -->
+            <div id="liked-movies-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- JS ile doldurulacak -->
+            </div>
+
+            <!-- Boş Durum Mesajı (Empty State) -->
+            <div id="empty-likes-state" class="hidden flex flex-col items-center justify-center h-full text-center py-20">
+                <div class="w-24 h-24 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                    <i class="fa-regular fa-heart text-4xl text-slate-400 dark:text-slate-600"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Henüz Favorin Yok</h3>
+                <p class="text-slate-500 max-w-sm mx-auto">Filmleri beğenmeye başladığında, yapay zeka senin için daha iyi öneriler sunacak.</p>
+                <button onclick="closeLikesModal()" class="mt-6 px-6 py-3 bg-primary hover:bg-indigo-500 text-white rounded-xl font-bold transition shadow-lg shadow-primary/30">Keşfetmeye Başla</button>
+            </div>
+        </div>
+    </div>
+</div>
+
     <script src="app.js"></script>
 </body>
 </html>
