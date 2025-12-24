@@ -33,6 +33,10 @@
         .modal-enter { opacity: 0; transform: scale(0.95); }
         .modal-enter-active { opacity: 1; transform: scale(1); transition: all 0.3s ease-out; }
         .modal-exit { opacity: 0; transform: scale(0.95); transition: all 0.2s ease-in; }
+        .movie-card-optimized {
+                content-visibility: auto; /* Ekran dışındaysa render etme */
+                contain-intrinsic-size: 450px; /* Yer tutucu boyut (layout kaymasını önler) */
+            }
     </style>
 </head>
 <body class="bg-light dark:bg-dark text-slate-800 dark:text-slate-200 antialiased min-h-screen">

@@ -128,14 +128,22 @@ function renderMovies(movies) {
 // 3. KART HTML (Zenginleştirilmiş)
 function createCardHTML(movie, isRec = false) {
     const likeClass = movie.isLiked ? 'text-secondary fa-solid' : 'text-slate-400 fa-regular';
-    // isRec (Öneri) ise farklı border rengi
     const borderClass = isRec ? 'border-primary/50 ring-2 ring-primary/20' : 'border-slate-200 dark:border-slate-800';
 
+    // DÜZELTME: 'movie-card-optimized' sınıfını en dıştaki ana div'e ekledik.
+    // İç içe div yapmadık, sınıfları birleştirdik.
     return `
-    <div class="group relative bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 border ${borderClass} flex flex-col h-full">
+    <div class="movie-card-optimized group relative bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 border ${borderClass} flex flex-col h-full">
+        
         <!-- Tıklanabilir Alan (Detay için) -->
         <div onclick="openModal(${movie.id})" class="cursor-pointer relative aspect-[2/3] overflow-hidden bg-slate-800">
-            <img src="${movie.poster}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+            <img 
+                src="${movie.thumbnail || movie.poster}" 
+                loading="lazy" 
+                decoding="async"
+                alt="${movie.title}" 
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            >
             <div class="absolute inset-0 bg-gradient-to-t from-dark/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-6">
                 <span class="text-white font-bold tracking-widest text-sm uppercase px-4 py-2 border border-white/30 rounded-full backdrop-blur-sm">Detayları Gör</span>
             </div>
