@@ -6,6 +6,10 @@ let currentPage = 1;
 let isFetching = false;
 let hasMore = true; // Daha yüklenecek veri var mı?
 
+let currentSearch = '';
+let searchTimeout; // Debounce için zamanlayıcı
+
+
 
 // BAŞLANGIÇ
 document.addEventListener('DOMContentLoaded', async () => {
@@ -45,32 +49,62 @@ async function loadMovies(reset = false) {
         document.getElementById('end-of-list').classList.add('hidden');
     }
 
-    try {
-        // Backend'e sayfa numarası ile istek at
-        const url = `${API_URL}/movies?genre=${currentFilter}&page=${currentPage}&limit=20`;
+     try {
+        // URL'e search parametresini ekle
+        const url = `${API_URL}/movies?genre=${currentFilter}&page=${currentPage}&limit=20&search=${currentSearch}`;
         const res = await fetch(url);
         const { data, meta } = await res.json();
 
-        // Veriyi Ekrana Bas (Append Mode)
-        renderMoviesAppend(data);
-
-        // State Güncelleme
-        allMovies = reset ? data : [...allMovies, ...data]; // Hafızayı güncelle
-        
-        if (data.length === 0 || currentPage >= meta.totalPages) {
-            hasMore = false;
-            document.getElementById('end-of-list').classList.remove('hidden');
-            sentinel.classList.add('hidden'); // Gözcüyü gizle
+        // --- SONUÇ KONTROLÜ (Empatik Yaklaşım) ---
+        if (data.length === 0 && currentPage === 1) {
+            // Hiç sonuç yoksa
+            document.getElementById('movies-grid').classList.add('hidden');
+            document.getElementById('no-results').classList.remove('hidden');
+            document.getElementById('no-results').classList.add('flex'); // Flex ile ortala
+            document.getElementById('search-term-display').innerText = currentSearch;
+            
+            // Sentinel (Yükleyici) gizle
+            document.getElementById('infinite-scroll-sentinel').classList.add('hidden');
         } else {
-            currentPage++;
+            // Sonuç varsa normal akış
+            renderMoviesAppend(data);
+            allMovies = reset ? data : [...allMovies, ...data];
+            
+            if (data.length === 0 || currentPage >= meta.totalPages) {
+                hasMore = false;
+                if(allMovies.length > 0) document.getElementById('end-of-list').classList.remove('hidden');
+                document.getElementById('infinite-scroll-sentinel').classList.add('hidden');
+            } else {
+                currentPage++;
+            }
         }
 
     } catch (e) {
         console.error(e);
     } finally {
         isFetching = false;
-        sentinel.classList.add('opacity-0');
+        document.getElementById('infinite-scroll-sentinel').classList.add('opacity-0');
     }
+}
+
+function handleSearch(query) {
+    currentSearch = query.trim();
+    
+    // Önceki zamanlayıcıyı iptal et (Henüz 300ms dolmadıysa)
+    clearTimeout(searchTimeout);
+
+    // Yeni zamanlayıcı başlat
+    searchTimeout = setTimeout(() => {
+        // 300ms boyunca yazma durursa burası çalışır
+        loadMovies(true); // Listeyi sıfırla ve ara
+    }, 300);
+}
+
+
+function clearSearch() {
+    document.getElementById('search-input').value = '';
+    currentSearch = '';
+    loadMovies(true);
 }
 
 

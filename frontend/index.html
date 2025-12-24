@@ -77,6 +77,20 @@
                 <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">Sinema Dünyası</h1>
                 <p class="text-slate-500 dark:text-slate-400 text-lg font-medium">Kişiselleştirilmiş film deneyimi</p>
             </div>
+
+            <!-- YENİ: Arama Çubuğu -->
+    <div class="relative w-full md:w-64 group">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i class="fa-solid fa-search text-slate-400 group-focus-within:text-primary transition-colors"></i>
+        </div>
+        <input 
+            type="text" 
+            id="search-input" 
+            oninput="handleSearch(this.value)"
+            placeholder="Film ara..." 
+            class="block w-full pl-10 pr-3 py-3 border border-slate-200 dark:border-slate-700 rounded-xl leading-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary sm:text-sm shadow-sm transition-all"
+        >
+    </div>
             
             <div class="flex flex-col md:flex-row gap-4 w-full xl:w-auto">
                 <!-- Sıralama Dropdown -->
@@ -117,6 +131,21 @@
             <div id="movies-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 <!-- Kartlar Buraya -->
             </div>
+
+            <!-- BOŞ DURUM MESAJI (Empatik Tasarım) -->
+<div id="no-results" class="hidden flex-col items-center justify-center py-20 text-center animate-fade-in">
+    <div class="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 shadow-inner">
+        <i class="fa-solid fa-film text-4xl text-slate-300 dark:text-slate-600"></i>
+    </div>
+    <h3 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Aradığınız filmi bulamadık</h3>
+    <p class="text-slate-500 dark:text-slate-400 max-w-md mx-auto mb-6">
+        "<span id="search-term-display" class="font-bold text-primary">...</span>" ile eşleşen bir sonuç yok. 
+        Yazım hatası yapmış olabilir misiniz?
+    </p>
+    <button onclick="clearSearch()" class="px-6 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary text-slate-700 dark:text-slate-300 rounded-lg font-medium transition shadow-sm hover:shadow-md">
+        Aramayı Temizle
+    </button>
+</div>
             
             <!-- GÖZCÜ ELEMAN (SONSUZ KAYDIRMA İÇİN) -->
             <!-- Bu eleman ekrana girdiği an yeni sayfa yüklenecek -->
