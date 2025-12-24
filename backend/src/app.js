@@ -21,40 +21,46 @@ let userLikedMovies = [];
 
 // 1. Filmleri Listele (Filtreleme Destekli)
 app.get('/api/movies', (req, res) => {
-    // Query Parametrelerini Al (Varsayılan: Sayfa 1, Limit 20)
     const genre = req.query.genre;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
+    const search = req.query.search; 
 
     let result = movies;
 
-    // 1. Önce Filtreleme (Tüm veri üzerinde)
+    if (search) {
+        const term = search.toLowerCase();
+        result = result.filter(m => m.title.toLowerCase().includes(term));
+    }
+
+    // Filtreleme
     if (genre && genre !== 'All') {
         result = movies.filter(m => m.tags.includes(genre));
     }
 
-    // 2. Beğeni Bilgisini Ekle (Tüm veri üzerinde)
-    // Not: Gerçek DB olsaydı bunu SQL/Mongo query içinde yapardık.
-    const fullResultWithLikes = result.map(m => ({
+    // MAPLEME (Resim Optimizasyonu Burada)
+    // w500 (büyük) yerine w185 (küçük) linki üretiyoruz
+    const optimizedResult = result.map(m => ({
         ...m,
-        isLiked: userLikedMovies.includes(m.id)
+        isLiked: userLikedMovies.includes(m.id),
+        // Ana poster (w500) kalsın (Detay için)
+        poster: m.poster, 
+        // Liste için optimize edilmiş küçük resim (w185)
+        thumbnail: m.poster.replace('/w500/', '/w185/').replace('/original/', '/w185/') 
     }));
 
-    // 3. Sayfalama (Pagination Logic)
+    // Sayfalama
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-    
-    // Sadece istenen aralığı kesip alıyoruz
-    const paginatedResult = fullResultWithLikes.slice(startIndex, endIndex);
+    const paginatedResult = optimizedResult.slice(startIndex, endIndex);
 
-    // 4. Metadata ile Birlikte Dön
     res.json({
         data: paginatedResult,
         meta: {
-            total: fullResultWithLikes.length, // Toplam kaç film var (filtreye uyan)
+            total: optimizedResult.length,
             page: page,
             limit: limit,
-            totalPages: Math.ceil(fullResultWithLikes.length / limit)
+            totalPages: Math.ceil(optimizedResult.length / limit)
         }
     });
 });
